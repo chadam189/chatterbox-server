@@ -24,7 +24,8 @@ for (var i = 0; i < 1; i++) {
   var temp = {
     username: 'Mel Brooks',
     text: ('This is my ' + i + ' message.'),
-    roomname: 'lobby'
+    roomname: 'lobby',
+    objectId: Math.round((Math.random() * 50000))
   };
   data.results.push(temp);
 }
@@ -35,6 +36,7 @@ var defaultCorsHeaders = {
   'access-control-allow-origin': '*',
   'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'access-control-allow-headers': 'content-type, accept',
+  'content-type': 'application/json',
   'access-control-max-age': 10 // Seconds.
 };
 
@@ -57,11 +59,9 @@ var requestHandler = function(request, response) {
  
   
   
-  console.log('Serving request type ' + request.method + ' for url ' + request.url);
+  console.log('Serving request type ' + request.method + ' for ' + request.url);
   
   var headers = defaultCorsHeaders;
-  headers['Content-Type'] = 'application/json';
-  
   
   if (request.method === 'GET') {
     if (request.url !== '/classes/messages') {
@@ -81,21 +81,28 @@ var requestHandler = function(request, response) {
     let body = [];
     request.on('data', (chunk) => {
       body.push(chunk);
-    }).on('end', () => {
+    });
+    
+    request.on('end', () => {
       body = Buffer.concat(body).toString();
       // console.log('body = ', body);
       var newMessage = querystring.parse(body);
-      // console.log('newMessage = ', newMessage);
+      newMessage.objectId = newMessage.objectId || (Math.random() * 50000);
+      console.log('newMessage = ', newMessage);
       data.results.push(newMessage);
       // console.log('data is now this: ', data);
       response.writeHead(201, headers);
-      response.end('Post is complete');
+      // console.log(response);
+      response.end(JSON.stringify(newMessage));
     });
   } else {
     response.writeHead(404, headers);
   }
   
-  
+  if (request.method === 'OPTIONS') {
+    response.writeHead(200, headers);
+    response.end();
+  }
 
 
 
@@ -115,11 +122,9 @@ var requestHandler = function(request, response) {
   // anything back to the client until you do. The string you pass to
   // response.end() will be the body of the response - i.e. what shows
   // up in the browser.
-  //
+
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  
-  response.end('whatevs');
   
 };
 

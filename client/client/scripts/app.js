@@ -32,7 +32,7 @@ var app = {
     // Poll for new messages
     setInterval(function() {
       app.fetch(true);
-    }, 30000);
+    }, 5000);
   },
 
   send: function(message) {
@@ -43,12 +43,13 @@ var app = {
       url: app.server,
       type: 'POST',
       data: message,
+      // contentType: 'application/json',
       success: function (data) {
         // Clear messages input
         app.$message.val('');
 
         // Trigger a fetch to update the messages, pass true to animate
-        app.fetch();
+        app.fetch(true);
       },
       error: function (error) {
         console.error('chatterbox: Failed to send message', error);
@@ -65,10 +66,10 @@ var app = {
       success: function(data) {
         // Don't bother if we have nothing to work with
         if (!data.results || !data.results.length) { return; }
-
+      
         // Store messages for caching later
         app.messages = data.results;
-
+        // console.log(data.results);
         // Get the last message
         var mostRecentMessage = data.results[data.results.length - 1];
 
