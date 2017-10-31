@@ -21,7 +21,7 @@ var data = {
 for (var i = 0; i < 10; i++) {
   var temp = {
     username: 'Mel Brooks',
-    text: ('This is my' + i + ' message.'),
+    message: ('This is my' + i + ' message.'),
     roomname: 'lobby'
   };
   data.results.push(temp);
@@ -62,14 +62,19 @@ var requestHandler = function(request, response) {
   var headers = defaultCorsHeaders;
   
   if (request.method === 'GET' && request.url === '/classes/messages') {
-    statusCode = 200;
+    
     response.end(JSON.stringify(data));
-  } else if (request.method === 'POST') {
-    statusCode = 201;
+    
+    statusCode = 200;
+    
+  } else if (request.method === 'POST' && (request.url === '/classes/messages' || request.url === '/classes/room')) {
+    response.statusCode = 201;
     console.log(request.postdata);
     // data.results.push(whatever the new message is)
     // message will come from request.????
     response.end('did a post happen?' + request._postData);
+    
+    
   } else {
     statusCode = 404;
   }
