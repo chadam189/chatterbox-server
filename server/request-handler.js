@@ -14,14 +14,16 @@ this file and include it in basic-server.js so that it actually works.
 
 // master data
 
+var querystring = require('querystring');
+
 var data = {
   results: []
 };
 
-for (var i = 0; i < 10; i++) {
+for (var i = 0; i < 3; i++) {
   var temp = {
     username: 'Mel Brooks',
-    message: ('This is my' + i + ' message.'),
+    text: ('This is my ' + i + ' message.'),
     roomname: 'lobby'
   };
   data.results.push(temp);
@@ -57,23 +59,36 @@ var requestHandler = function(request, response) {
   
   console.log('Serving request type ' + request.method + ' for url ' + request.url);
   
-   // The outgoing status.
-  var statusCode;
   var headers = defaultCorsHeaders;
+  headers['Content-Type'] = 'application/json';
   
-  if (request.method === 'GET' && request.url === '/classes/messages') {
+  
+  if (request.method === 'GET') {
+    response.writeHead(200, headers);
+    response.end(JSON.stringify(data));  
+  } 
+  
+  if (request.method === 'POST' && request.url === '/classes/messages') {
+    let body = [];
+    request.on('data', (chunk) => {
+      body.push(chunk);
+    }).on('end', () => {
+      body = Buffer.concat(body).toString();
+      // at this point, `body` has the entire request body stored in it as a string
+    });
     
-    response.end(JSON.stringify(data));
+    // var body = '';
     
-    statusCode = 200;
+    // request.on('data', function (data) {
+    //   console.log('chunk is', chunk);
+    //   body += data;
+    // });
     
-  } else if (request.method === 'POST' && (request.url === '/classes/messages' || request.url === '/classes/room')) {
-    response.statusCode = 201;
-    console.log(request.postdata);
-    // data.results.push(whatever the new message is)
-    // message will come from request.????
-    response.end('did a post happen?' + request._postData);
-    
+    // req.on('end', function () {
+    //   var post = querystring.parse(body);
+    //   res.writeHead(201, {'Content-Type': 'text/plain'});
+    //   res.end('Post is complete');
+    // });
     
   } else {
     statusCode = 404;
@@ -90,11 +105,10 @@ var requestHandler = function(request, response) {
   //
   // You will need to change this if you are sending something
   // other than plain text, like JSON or HTML.
-  // headers['Content-Type'] = 'text/plain';
+
 
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
-  response.writeHead(statusCode, headers);
 
   // Make sure to always call response.end() - Node may not send
   // anything back to the client until you do. The string you pass to
@@ -127,5 +141,5 @@ var requestHandler = function(request, response) {
 // client from this domain by setting up static file serving.
 
 
-module.exports = requestHandler;
+module.exports.requestHandler = requestHandler;
 
