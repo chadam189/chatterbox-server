@@ -20,7 +20,7 @@ var data = {
   results: []
 };
 
-for (var i = 0; i < 3; i++) {
+for (var i = 0; i < 1; i++) {
   var temp = {
     username: 'Mel Brooks',
     text: ('This is my ' + i + ' message.'),
@@ -64,34 +64,35 @@ var requestHandler = function(request, response) {
   
   
   if (request.method === 'GET') {
-    response.writeHead(200, headers);
-    response.end(JSON.stringify(data));  
-  } 
+    if (request.url !== '/classes/messages') {
+      response.writeHead(404, headers); 
+      console.log('the request URL for this GET request is: ', request.url);
+      response.end('invalid URL');
+    } else {
+      response.writeHead(200, headers);
+      console.log('the request URL for this GET request is: ', request.url);
+      response.end(JSON.stringify(data)); 
+    }
+  }
   
   if (request.method === 'POST' && request.url === '/classes/messages') {
+    
+    // console.log('the request URL for this POST request is: ', request.url);
     let body = [];
     request.on('data', (chunk) => {
       body.push(chunk);
     }).on('end', () => {
       body = Buffer.concat(body).toString();
-      // at this point, `body` has the entire request body stored in it as a string
+      // console.log('body = ', body);
+      var newMessage = querystring.parse(body);
+      // console.log('newMessage = ', newMessage);
+      data.results.push(newMessage);
+      // console.log('data is now this: ', data);
+      response.writeHead(201, headers);
+      response.end('Post is complete');
     });
-    
-    // var body = '';
-    
-    // request.on('data', function (data) {
-    //   console.log('chunk is', chunk);
-    //   body += data;
-    // });
-    
-    // req.on('end', function () {
-    //   var post = querystring.parse(body);
-    //   res.writeHead(201, {'Content-Type': 'text/plain'});
-    //   res.end('Post is complete');
-    // });
-    
   } else {
-    statusCode = 404;
+    response.writeHead(404, headers);
   }
   
   
@@ -117,14 +118,6 @@ var requestHandler = function(request, response) {
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  // if (request.method === 'POST') {
-  //   console.log('This message is displaying to the servers console for POST requests.');
-  //   response.end('Becky and Chadam say NO POSTING!');
-  //   console.log('Does anything get displayed after response.end?');
-  // } else if (request.method === 'GET') {
-  //   // headers['Content-Type'] = 'JSON';
-  //   response.end('Hello, Becky and Chadam!');
-  // }
   
   response.end('whatevs');
   
